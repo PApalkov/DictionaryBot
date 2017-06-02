@@ -2,19 +2,21 @@ import os
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
 
-MAX_FREQUENCY = 0.99
+MAX_FREQUENCY = 0.8
 
-def read_texts():
+
+def read_texts(language):
     """Making dictionary: key - filename, value - text"""
 
-    files_list = os.listdir(path="./texts")
+    texts_path = "./texts/" + language + "/"
+    files_list = os.listdir(path=texts_path)
 
     texts = list()
-    vectorizer = CountVectorizer(stop_words='english')
+    vectorizer = CountVectorizer(stop_words=language)
 
     for file in files_list:
-        f_object = open("./texts/" + file, "r")
-        texts.append(f_object.read())
+        f_object = open(texts_path + file, "r")
+        texts.append( delete_digits(f_object.read()) )
         f_object.close()
 
     vectorizer.fit_transform(texts)
@@ -25,6 +27,13 @@ def read_texts():
         dictionary[file.replace(".txt", "")] = analyzer(texts[i])
 
     return dictionary
+
+
+def delete_digits(text):
+    for i in range(0, 10):
+        text = text.replace(str(i), "")
+
+    return text
 
 
 def parse_texts(texts):
@@ -71,8 +80,8 @@ def divide_to_theme(texts):
     return theme_dict
 
 
-def get_info():
-    texts = read_texts()
+def get_info(language):
+    texts = read_texts(language)
     texts = parse_texts(texts)
     words = divide_to_theme(texts)
 
@@ -80,7 +89,7 @@ def get_info():
 
 
 if __name__ == "__main__":
-    all_words = get_info()
+    all_words = get_info('english')
     for key, value in all_words.items():
         print(key, value)
         print(key, len(value))
