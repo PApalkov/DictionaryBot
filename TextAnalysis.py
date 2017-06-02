@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
 
 MAX_FREQUENCY = 0.99
 
@@ -8,14 +9,22 @@ def read_texts():
 
     files_list = os.listdir(path="./texts")
 
-    texts = dict()
+    texts = list()
+    vectorizer = CountVectorizer(stop_words='english')
 
     for file in files_list:
         f_object = open("./texts/" + file, "r")
-        texts[file] = f_object.read()
+        texts.append(f_object.read())
         f_object.close()
 
-    return texts
+    vectorizer.fit_transform(texts)
+    analyzer = vectorizer.build_analyzer()
+
+    dictionary = dict()
+    for i, file in enumerate(files_list):
+        dictionary[file.replace(".txt", "")] = analyzer(texts[i])
+
+    return dictionary
 
 
 def parse_texts(texts):
@@ -23,11 +32,8 @@ def parse_texts(texts):
 
     dictionary = dict()
 
-    for key in texts.keys():
-        new_key = key.replace(".txt", "")
-
-        words = list(delete_punctuation(texts[key].lower()).split())
-
+    for theme in texts.keys():
+        words = texts[theme]
         count_words = dict()
         for word in words:
             if word in count_words.keys():
@@ -35,29 +41,9 @@ def parse_texts(texts):
             else:
                 count_words[word] = 1
 
-        dictionary[new_key] = count_words
-
+        dictionary[theme] = count_words
 
     return dictionary
-
-
-def delete_punctuation(s):
-    #todo optimize
-    """Deleting punctuation and other stuff"""
-    s = s.replace('.', '')
-    s = s.replace(',', '')
-    s = s.replace('!', '')
-    s = s.replace('?', '')
-    s = s.replace('-', '')
-    s = s.replace(':', '')
-    s = s.replace(';', '')
-    s = s.replace('\"', '')
-    s = s.replace('\'', '')
-    s = s.replace('/', ' ')
-    s = s.replace('(', ' ')
-    s = s.replace(')', ' ')
-
-    return s
 
 
 def divide_to_theme(texts):
@@ -74,50 +60,28 @@ def divide_to_theme(texts):
         word_frequency = df[word].sum()
 
         for i, num_of_word_in_text in enumerate(df[word]):
-
             if df[word][i] / word_frequency > MAX_FREQUENCY:
                 if not(word in theme_dict[df.index[i]]):
                     theme_dict[df.index[i]][word] = word_frequency
+                    break
+        else:
+            if not (word in theme_dict[df.index[i]]):
+                theme_dict["General"][word] = word_frequency
 
     return theme_dict
-
-
-def all_words_from_texts(texts):
-    all_words = dict()
-
-    for text in texts.keys():
-        for word in texts[text]:
-            if word in all_words:
-                all_words[word] += texts[text][word]
-            else:
-                all_words[word] = texts[text][word]
-
-    return all_words
 
 
 def get_info():
     texts = read_texts()
     texts = parse_texts(texts)
+    words = divide_to_theme(texts)
 
-    special_words = divide_to_theme(texts)
-    all_words = all_words_from_texts(texts)
-
-    return all_words, special_words
+    return words
 
 
-
-#todo delete short words
 if __name__ == "__main__":
-    all_words, special_words = get_info()
-
+    all_words = get_info()
     for key, value in all_words.items():
-        print(key, value)
-
-
-    print()
-    print()
-
-    for key, value in special_words.items():
         print(key, value)
         print(key, len(value))
         print()

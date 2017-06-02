@@ -6,7 +6,7 @@ def create_dictionary_table(db_name, table_name):
     c = connection.cursor()
 
     #creating table
-    command = ("CREATE TABLE " + table_name + " (priority integer, word text)")
+    command = ("CREATE TABLE " + table_name + " (priority integer, word text, theme text)")
 
     c.execute(command)
 
@@ -23,12 +23,13 @@ def create_db(db_name):
     connection.close()
 
 
-def insert(db_name, table_name, priority, word):
+def insert(db_name, table_name, priority, word, theme):
     connection = sqlite3.connect(db_name)
     c = connection.cursor()
 
     #inserting
-    command = ("INSERT INTO " + table_name + " VALUES (" + str(priority) + ",'" + word + "')")
+    command = ("INSERT INTO " + table_name + " VALUES (" + str(priority) +
+               ",'" + word + "', '" + theme + "')")
 
     c.execute(command)
 
@@ -43,11 +44,13 @@ def insert(db_name, table_name, dictionary):
     c = connection.cursor()
 
     print(dictionary)
-    for word, priority in dictionary.items():
-        # inserting
-        command = ("INSERT INTO " + table_name + " VALUES (" + str(priority) + ",'" + word + "')")
+    for theme, info in dictionary.items():
+        for word, priority in info.items():
 
-    c.execute(command)
+            command = ("INSERT INTO " + table_name + " VALUES (" + str(priority) +
+                       ",'" + word + "', '" + theme + "')")
+
+            c.execute(command)
 
     #command = ("ORDER BY " + table_name + " priority")
 
