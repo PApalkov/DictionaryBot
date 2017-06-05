@@ -1,12 +1,13 @@
 import TextAnalysis
 import DBconnector as DB
-import Translator
+from Translator import translate
 
 
 all_words = TextAnalysis.get_info("english")
 
-#DB.create_dictionary_table("Dictionary.db", "en")
-#DB.insert("Dictionary.db", "en", all_words)
-words = DB.select("Dictionary.db", "en", 10, 7, 'Tech')
+#DB.create_dictionary_table("en")
+#DB.insert_dictionary("en", all_words)
+words = DB.select_from_dictionary("en", 52, 10, 'Tech')
 
-print(Translator.translate("Shit", "en", "ru"))
+for i, word in enumerate(words):
+    print(i, word,'-', translate(word, "en", "ru"))

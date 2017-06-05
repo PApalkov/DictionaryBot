@@ -25,3 +25,5 @@ def translate(word, from_language, to_language):
         return "ERROR"
 
 
+if __name__ == "__main__":
+    print(translate("лол", "ru", "en"))
