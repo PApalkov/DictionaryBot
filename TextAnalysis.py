@@ -75,7 +75,7 @@ def divide_to_theme(texts):
                     break
         else:
             if not (word in theme_dict[df.index[i]]):
-                theme_dict["General"][word] = word_frequency
+                theme_dict["COMMON"][word] = word_frequency
 
     return theme_dict
 

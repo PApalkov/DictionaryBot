@@ -26,4 +26,4 @@ def translate(word, from_language, to_language):
 
 
 if __name__ == "__main__":
-    print(translate("лол", "ru", "en"))
+    print(translate("юридический текст", "ru", "en"))
