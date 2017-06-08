@@ -1,24 +1,29 @@
 from telebot import types
 
+ENGLISH_LANGUAGE = "ENGLISH"
+RUSSIAN_LANGUAGE = "RUSSIAN"
+FRENCH_LANGUAGE = "FRENCH"
+GERMAN_LANGUAGE = "GERMAN"
+
 
 def make_language_keyboard(first_language = None):
 
     languages = types.ReplyKeyboardMarkup(row_width=2, resize_keyboard=True)
-    english = types.KeyboardButton("ENGLISH")
-    french = types.KeyboardButton("FRENCH")
-    german = types.KeyboardButton("GERMAN")
-    russian = types.KeyboardButton("RUSSIAN")
+    english = types.KeyboardButton(ENGLISH_LANGUAGE)
+    french = types.KeyboardButton(FRENCH_LANGUAGE)
+    german = types.KeyboardButton(GERMAN_LANGUAGE)
+    russian = types.KeyboardButton(RUSSIAN_LANGUAGE)
 
-    if first_language == "ENGLISH":
+    if first_language == ENGLISH_LANGUAGE:
         languages.add(russian, french, german)
 
-    elif first_language == "RUSSIAN":
+    elif first_language == RUSSIAN_LANGUAGE:
         languages.add(english, french, german)
 
-    elif first_language == "FRENCH":
+    elif first_language == FRENCH_LANGUAGE:
         languages.add(english, russian, german)
 
-    elif first_language == "GERMAN":
+    elif first_language == GERMAN_LANGUAGE:
         languages.add(english, russian, french)
 
     else:
@@ -33,9 +38,9 @@ def make_theme_keyboard():
     common = types.KeyboardButton("COMMON")
     tech = types.KeyboardButton("TECH")
     medicine = types.KeyboardButton("MEDICINE")
-    #legal = types.KeyboardButton("LEGAL")
+    legal = types.KeyboardButton("LEGAL")
 
-    themes.add(common, tech, medicine, '''legal''')
+    themes.add(common, tech, medicine, legal)
     return themes
 
 

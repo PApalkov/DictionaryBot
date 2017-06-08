@@ -1,10 +1,15 @@
-
-import telebot
 import cherrypy
-import config
+import telebot
+from config import token
+import DBconnector as DB
+import support
+from support import ENGLISH_LANGUAGE, RUSSIAN_LANGUAGE, FRENCH_LANGUAGE, GERMAN_LANGUAGE
+from Translator import translate
 
 
-WEBHOOK_HOST = '188.226.151.48'
+#================== START OF WEBHOOK PART==============
+
+WEBHOOK_HOST = '95.85.10.122'
 WEBHOOK_PORT = 443  # 443, 80, 88 или 8443
 WEBHOOK_LISTEN = '0.0.0.0'
 
@@ -12,9 +17,9 @@ WEBHOOK_SSL_CERT = './webhook_cert.pem'
 WEBHOOK_SSL_PRIV = './webhook_pkey.pem'
 
 WEBHOOK_URL_BASE = "https://%s:%s" % (WEBHOOK_HOST, WEBHOOK_PORT)
-WEBHOOK_URL_PATH = "/%s/" % config.token
+WEBHOOK_URL_PATH = "/%s/" % token
 
-bot = telebot.TeleBot(config.token)
+bot = telebot.TeleBot(token)
 
 
 class WebhookServer(object):
@@ -26,7 +31,7 @@ class WebhookServer(object):
             length = int(cherrypy.request.headers['content-length'])
             json_string = cherrypy.request.body.read(length).decode("utf-8")
             update = telebot.types.Update.de_json(json_string)
-
+            # Эта функция обеспечивает проверку входящего сообщения
             bot.process_new_updates([update])
             return ''
         else:
@@ -35,15 +40,13 @@ class WebhookServer(object):
 
 
 
-# Хэндлер на все текстовые сообщения
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def echo_message(message):
     bot.reply_to(message, message.text)
 
-# Снимаем вебхук перед повторной установкой (избавляет от некоторых проблем)
 bot.remove_webhook()
 
-# Ставим заново вебхук
+ # Ставим заново вебхук
 bot.set_webhook(url=WEBHOOK_URL_BASE + WEBHOOK_URL_PATH,
                 certificate=open(WEBHOOK_SSL_CERT, 'r'))
 
@@ -56,7 +59,5 @@ cherrypy.config.update({
     'server.ssl_private_key': WEBHOOK_SSL_PRIV
 })
 
-# Собственно, запуск!
+ # Собственно, запуск!
 cherrypy.quickstart(WebhookServer(), WEBHOOK_URL_PATH, {'/': {}})
-
-
