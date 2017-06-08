@@ -40,14 +40,6 @@ class WebhookServer(object):
 def echo_message(message):
     bot.reply_to(message, message.text)
 
-
-
-
-
-
-
-
-
 # Снимаем вебхук перед повторной установкой (избавляет от некоторых проблем)
 bot.remove_webhook()
 
@@ -66,3 +58,5 @@ cherrypy.config.update({
 
 # Собственно, запуск!
 cherrypy.quickstart(WebhookServer(), WEBHOOK_URL_PATH, {'/': {}})
+
+

@@ -27,47 +27,42 @@ bot = telebot.TeleBot(token)
 
 @bot.message_handler(commands=['start'])
 def start_message(message):
-    #todo send introduction message
 
-    chat = message.chat
-    if not(DB.contains_person(chat.id)):
-        print(chat)
-        id = chat.id
-        name = chat.first_name
-        last_name = chat.last_name
+    intro_message = support.get_intro_message()
+
+    chat_id = message.chat.id
+    if not(DB.contains_person(chat_id)):
+
+        name = message.chat.first_name
+        last_name = message.chat.last_name
         registration_step = CHOOSING_FIRST_LANGUAGE
-        DB.insert_person(id, name, last_name, registration_step)
-
+        DB.insert_person(chat_id, name, last_name, registration_step)
 
         lang_keyboard = support.make_language_keyboard()
-        bot.send_message(chat_id=chat.id, text="Choose your language:", reply_markup=lang_keyboard)
-    else:
-        send_words(message)
+
+        bot.send_message(chat_id, intro_message)
+        bot.send_message(chat_id, text="Choose your language:", reply_markup=lang_keyboard)
 
 
 @bot.message_handler(commands=['stop'])
 def last_message(message):
     del_keyboard = telebot.types.ReplyKeyboardRemove()
     DB.del_person(message.chat.id)
-    bot.send_message(chat_id=message.chat.id, text="Bye!", reply_markup=del_keyboard)
+    text = "See you later!"
+    bot.send_message(chat_id=message.chat.id, text=text, reply_markup=del_keyboard)
 
 
 def send_words(message):
-    if message.text == "GET WORDS":
-        chat_id = message.chat.id
+    chat_id = message.chat.id
 
-        first_language = DB.get_first_language(chat_id)
-        second_language = DB.get_second_language(chat_id)
+    first_language = DB.get_first_language(chat_id)
+    second_language = DB.get_second_language(chat_id)
+
+    if message.text == "GET WORDS":
+
         progress = DB.get_progress(chat_id)
         theme = DB.get_theme(chat_id)
-
-        if second_language == "en": print("ЗАЛУПА")
-        else: print(second_language)
-
         words = DB.select_from_dictionary(second_language, progress, 10, theme)
-
-        print(words)
-        print(first_language, second_language, progress, theme)
 
         translated_words = ""
 
@@ -79,16 +74,19 @@ def send_words(message):
                 if not(word == translation):
                     translated_words += word + " - " + translation + "\n"
 
-            print(translated_words)
-
             DB.inc_progress(chat_id)
 
             bot.send_message(chat_id, translated_words)
         else:
             bot.send_message(chat_id, "You have finished this part!")
+    else:
+        #translating the word from person
+        word = message.text
+        translation = translate(word, second_language, first_language)
+        bot.send_message(chat_id, translation)
 
 
-def set_first_language (message):
+def set_first_language(message):
     chat_id = message.chat.id
     language = message.text
 
@@ -193,18 +191,17 @@ def set_theme(message):
                          reply_markup=theme_keyboard)
 
 
-
 @bot.message_handler(func=lambda m: True)
 def usual_messages(message):
     chat_id = message.chat.id
 
-    if (DB.contains_person(chat_id)):
+    if DB.contains_person(chat_id):
 
         if DB.get_reg_step(chat_id) == FINISHED:
             send_words(message)
 
         elif DB.get_reg_step(chat_id) == CHOOSING_FIRST_LANGUAGE:
-            print("GOT HERE")
+
             set_first_language(message)
             DB.inc_reg_step(chat_id)
 

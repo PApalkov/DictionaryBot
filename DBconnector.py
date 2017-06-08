@@ -4,6 +4,26 @@ DICTIONARY_DB_NAME = "./Dictionary.db"
 USERS_DB_NAME = "./Users.db"
 
 
+def db_execute(db_name, command):
+    connection = sqlite3.connect(db_name)
+    c = connection.cursor()
+    c.execute(command)
+    connection.commit()
+    connection.close()
+
+
+def db_execute_feedback(db_name, command):
+    connection = sqlite3.connect(db_name)
+    c = connection.cursor()
+
+    result = c.execute(command).fetchall()
+
+    connection.commit()
+    connection.close()
+
+    return result[0][0]
+
+
 #todo привести в нормальный вид
 #===============DICTIONARY PART===============
 
@@ -14,14 +34,13 @@ def create_db(db_name):
 
 
 def create_dictionary_table(table_name):
-    connection = sqlite3.connect(DICTIONARY_DB_NAME)
-    c = connection.cursor()
+    command = "CREATE TABLE if not exists {} " \
+               "(priority integer, " \
+               "word TEXT, " \
+               "theme TEXT, " \
+               "id INTEGER PRIMARY KEY)".format(table_name)
 
-    t_name = (table_name)
-    c.execute("CREATE TABLE if not exists {} (priority integer, word TEXT, "
-              "theme TEXT, id INTEGER PRIMARY KEY)".format(t_name))
-    connection.commit()
-    connection.close()
+    db_execute(DICTIONARY_DB_NAME, command)
 
 
 def insert_dictionary(table_name, dictionary):
@@ -32,8 +51,9 @@ def insert_dictionary(table_name, dictionary):
         for word, priority in info.items():
             t_name = (table_name)
             print(priority, word, theme)
-            c.execute("INSERT INTO  {} (priority, word, theme) "
-                       "VALUES (?,?,?)".format(t_name), (priority, word, theme,))
+            c.execute("INSERT INTO  {} "
+                      "(priority, word, theme) "
+                      "VALUES (?,?,?)".format(t_name), (priority, word, theme,))
 
     connection.commit()
     connection.close()
@@ -43,11 +63,12 @@ def select_from_dictionary(table_name, start_number, number_of_words, theme):
     connection = sqlite3.connect(DICTIONARY_DB_NAME)
     c = connection.cursor()
 
-    command = ("SELECT word FROM {} "
-               "WHERE theme='{}' "
-               "ORDER BY priority DESC "
-               "LIMIT {} "
-               "OFFSET {}".format(table_name, theme, number_of_words, start_number))
+    command = "SELECT word " \
+              "FROM {} " \
+              "WHERE theme='{}' " \
+              "ORDER BY priority DESC " \
+              "LIMIT {} " \
+              "OFFSET {}".format(table_name, theme, number_of_words, start_number)
 
     tuple_words = list(c.execute(command))
 
@@ -63,14 +84,19 @@ def select_from_dictionary(table_name, start_number, number_of_words, theme):
 #=================USERS PART===============
 
 def create_users_db():
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
-    c.execute("CREATE TABLE if not exists users (chat_id integer, name TEXT, "
-              "surname TEXT, first_language TEXT, second_language TEXT, progress INTEGER, "
-              "registration_step INTEGER, theme TEXT, id INTEGER PRIMARY KEY)")
+    command = "CREATE TABLE if not exists users " \
+               "(chat_id integer, " \
+               "name TEXT," \
+               "surname TEXT, " \
+               "first_language TEXT, " \
+               "second_language TEXT, " \
+               "progress INTEGER, " \
+               "registration_step INTEGER, " \
+               "theme TEXT, " \
+               "id INTEGER PRIMARY KEY)"
 
-    connection.commit()
-    connection.close()
+    db_execute(USERS_DB_NAME, command)
+
 
 def contains_person(chat_id):
     connection = sqlite3.connect(USERS_DB_NAME)
@@ -88,136 +114,97 @@ def contains_person(chat_id):
 
 
 def insert_person(chat_id, name, surname, registration_step):
-    connection = sqlite3.connect("Users.db")
-    c = connection.cursor()
-    c.execute("INSERT INTO users (chat_id, name, surname, registration_step, progress)"
-              "VALUES (?,?,?,?,?)", (chat_id, name, surname, registration_step, 0))
+    command = "INSERT INTO users " \
+              "(chat_id, name, surname, registration_step, progress)" \
+              " VALUES ({}, '{}', '{}', {} ,{})".format(chat_id, name, surname, registration_step, 0)
 
-    connection.commit()
-    connection.close()
+    print(command)
+    db_execute(USERS_DB_NAME, command)
 
 
 def set_first_language(chat_id, fisrt_language):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
-    c.execute("UPDATE users SET first_language = ? "
-              "WHERE chat_id=?", (fisrt_language, chat_id,))
+    command = "UPDATE users SET first_language = '{}' " \
+              "WHERE chat_id={}".format(fisrt_language, chat_id)
 
-    connection.commit()
-    connection.close()
+    db_execute(USERS_DB_NAME, command)
 
 
 def set_second_language(chat_id, second_language):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
-    c.execute("UPDATE users SET second_language = '{}' "
-              "WHERE chat_id={}".format(second_language, chat_id))
+    command =  "UPDATE users " \
+               "SET second_language = '{}' " \
+               "WHERE chat_id={}".format(second_language, chat_id)
 
-    connection.commit()
-    connection.close()
+    db_execute(USERS_DB_NAME, command)
 
 
 def set_theme(chat_id, theme):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
-    c.execute("UPDATE users SET theme = '{}' "
-              "WHERE chat_id={}".format(theme, chat_id))
+    command =  "UPDATE users " \
+               "SET theme = '{}' " \
+               "WHERE chat_id={}".format(theme, chat_id)
 
-    connection.commit()
-    connection.close()
+    db_execute(USERS_DB_NAME, command)
 
 
 def inc_progress(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
 
-    c.execute("UPDATE users SET progress = progress + 10 "
-              "WHERE chat_id={}".format(chat_id))
+    command =  "UPDATE users " \
+               "SET progress = progress + 10 " \
+               "WHERE chat_id={}".format(chat_id)
 
-    connection.commit()
-    connection.close()
+    db_execute(USERS_DB_NAME, command)
 
 
 def inc_reg_step(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
+    command =  "UPDATE users " \
+               "SET registration_step = registration_step + 1 " \
+               "WHERE chat_id={}".format(chat_id)
 
-    c.execute("UPDATE users SET registration_step = registration_step + 1 "
-              "WHERE chat_id={}".format(chat_id))
-
-    connection.commit()
-    connection.close()
+    db_execute(USERS_DB_NAME, command)
 
 
 def get_reg_step(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
+    command =  "SELECT registration_step " \
+               "FROM users " \
+               "WHERE chat_id = {}".format(chat_id)
 
-    rp = c.execute("SELECT registration_step FROM users WHERE chat_id = ?", (chat_id,)).fetchall()
+    return db_execute_feedback(USERS_DB_NAME, command)
 
-    connection.commit()
-    connection.close()
-
-    return rp[0][0]
 
 def get_progress(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
+    command =  "SELECT progress " \
+               "FROM users " \
+               "WHERE chat_id = {}".format(chat_id)
 
-    pr = c.execute("SELECT progress FROM users WHERE chat_id = ?", (chat_id,)).fetchall()
-
-    connection.commit()
-    connection.close()
-
-    return pr[0][0]
-
+    return db_execute_feedback(USERS_DB_NAME, command)
 
 
 def get_first_language(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
+    command = "SELECT first_language " \
+               "FROM users " \
+               "WHERE chat_id = {}".format(chat_id)
 
-    fl = c.execute("SELECT first_language FROM users "
-                   "WHERE chat_id = ?", (chat_id,)).fetchall()
-
-    connection.commit()
-    connection.close()
-
-    return fl[0][0]
+    return db_execute_feedback(USERS_DB_NAME, command)
 
 
 def get_second_language(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
+    command =  "SELECT second_language " \
+               "FROM users " \
+               "WHERE chat_id = {}".format(chat_id)
 
-    sl = c.execute("SELECT second_language FROM users "
-                   "WHERE chat_id = ?", (chat_id,)).fetchall()
-
-    connection.commit()
-    connection.close()
-
-    return sl[0][0]
+    return db_execute_feedback(USERS_DB_NAME, command)
 
 
 def get_theme(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
+    command =  "SELECT theme " \
+               "FROM users " \
+               "WHERE chat_id = {}".format(chat_id)
 
-    th = c.execute("SELECT theme FROM users "
-                   "WHERE chat_id = ?", (chat_id,)).fetchall()
+    return db_execute_feedback(USERS_DB_NAME, command)
 
-    connection.commit()
-    connection.close()
-
-
-    return th[0][0]
 
 def del_person(chat_id):
-    connection = sqlite3.connect(USERS_DB_NAME)
-    c = connection.cursor()
+    command = "DELETE FROM users " \
+              "WHERE chat_id = {}".format(chat_id)
 
-    c.execute("DELETE FROM users "
-                   "WHERE chat_id = ?", (chat_id,))
+    db_execute(USERS_DB_NAME, command)
 
-    connection.commit()
-    connection.close()

@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 from sklearn.feature_extraction.text import CountVectorizer
+from stop_words import get_stop_words
+
 
 MAX_FREQUENCY = 0.8
 
@@ -12,7 +14,8 @@ def read_texts(language):
     files_list = os.listdir(path=texts_path)
 
     texts = list()
-    vectorizer = CountVectorizer(stop_words=language)
+    stop_w = get_stop_words(language)
+    vectorizer = CountVectorizer(stop_words=stop_w)
 
     for file in files_list:
         f_object = open(texts_path + file, "r")
