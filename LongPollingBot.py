@@ -63,29 +63,30 @@ def send_words(message):
 
         progress = DB.get_progress(chat_id)
         theme = DB.get_theme(chat_id)
-        words = DB.select_from_dictionary(second_language, progress, 10, theme)
-
-        translated_words = ""
+        words = DB.select_from_dictionary(first_language, second_language,
+                                          progress, 10, theme)
 
         if len(words) > 0:
-            for word in words:
-                translation = translate(word, second_language, first_language)
-
-                #if the word is rubbish
-                if not(word == translation):
-                    translated_words += word + " - " + translation + "\n"
+            translated_words = ""
+            for pair in words:
+                translated_words += pair
 
             DB.inc_progress(chat_id)
-
             bot.send_message(chat_id, translated_words)
+
         else:
             bot.send_message(chat_id, "You have finished this part!")
+
+    elif message.text == "BACK":
+        DB.dec_reg_step(chat_id)
+        keyboard = support.make_theme_keyboard()
+        bot.send_message(chat_id, "Choose the theme",reply_markup=keyboard)
+
     else:
         #translating the word from person
         word = message.text
         translation = translate(word, second_language, first_language)
         bot.send_message(chat_id, translation)
-
 
 
 def set_first_language(message):
@@ -159,8 +160,7 @@ def set_theme(message):
     chat_id = message.chat.id
     theme = message.text
 
-    send_words_keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    send_words_keyboard.add("GET WORDS")
+    send_words_keyboard = support.send_words_keyboard()
 
     if theme == COMMON_THEME:
         DB.set_theme(chat_id, COMMON_THEME)
@@ -192,13 +192,10 @@ def set_theme(message):
 def usual_messages(message):
     chat_id = message.chat.id
 
-
-
     if DB.contains_person(chat_id):
 
         if DB.get_reg_step(chat_id) == FINISHED:
             send_words(message)
-
 
         elif DB.get_reg_step(chat_id) == CHOOSING_FIRST_LANGUAGE:
 

@@ -44,6 +44,16 @@ def make_theme_keyboard():
     return themes
 
 
+def send_words_keyboard():
+
+    keyboard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True)
+    get_words = types.KeyboardButton("GET WORDS")
+    back = types.KeyboardButton("BACK")
+    keyboard.add(get_words, back)
+
+    return keyboard
+
+
 def get_intro_message():
     with open("intro.txt", 'r') as fp:
         intro_message = ""

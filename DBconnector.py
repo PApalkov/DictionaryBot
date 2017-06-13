@@ -1,4 +1,5 @@
 import sqlite3
+from Translator import translate
 
 DICTIONARY_DB_NAME = "./Dictionary.db"
 USERS_DB_NAME = "./Users.db"
@@ -35,14 +36,17 @@ def create_db(db_name):
 
 def create_dictionary_table(table_name):
     command = "CREATE TABLE if not exists {} " \
-               "(priority integer, " \
-               "word TEXT, " \
-               "theme TEXT, " \
-               "id INTEGER PRIMARY KEY)".format(table_name)
+              "(id INTEGER PRIMARY KEY," \
+              "priority integer, " \
+              "en TEXT, " \
+              "ru TEXT, " \
+              "fr TEXT, " \
+              "de TEXT, " \
+              "theme TEXT)".format(table_name)
 
     db_execute(DICTIONARY_DB_NAME, command)
 
-
+'''
 def insert_dictionary(table_name, dictionary):
     connection = sqlite3.connect(DICTIONARY_DB_NAME)
     c = connection.cursor()
@@ -57,25 +61,55 @@ def insert_dictionary(table_name, dictionary):
 
     connection.commit()
     connection.close()
+'''
 
 
-def select_from_dictionary(table_name, start_number, number_of_words, theme):
+def insert_dictionary_translating(table_name, dictionary):
     connection = sqlite3.connect(DICTIONARY_DB_NAME)
     c = connection.cursor()
 
-    command = "SELECT word " \
-              "FROM {} " \
+    for theme, info in dictionary.items():
+        for en_word, priority in info.items():
+            if len(en_word) > 2:
+
+                ru_word = translate(en_word, "en", "ru")
+                fr_word = translate(en_word, "en", "fr")
+                de_word = translate(en_word, "en", "de")
+
+                c.execute("INSERT INTO  {} "
+                          "(priority, "
+                          "en, "
+                          "ru, "
+                          "fr, "
+                          "de,"
+                          "theme) "
+                          "VALUES (?,?,?,?,?,?)".format(table_name),
+                          (priority, en_word, ru_word, fr_word, de_word, theme,))
+
+    connection.commit()
+    connection.close()
+
+
+def select_from_dictionary(first_language, second_language, start_number,
+                           number_of_words, theme):
+    connection = sqlite3.connect(DICTIONARY_DB_NAME)
+    c = connection.cursor()
+
+    command = "SELECT {}, {} " \
+              "FROM words " \
               "WHERE theme='{}' " \
               "ORDER BY priority DESC " \
               "LIMIT {} " \
-              "OFFSET {}".format(table_name, theme, number_of_words, start_number)
+              "OFFSET {}".format(first_language, second_language, theme,
+                                 number_of_words, start_number)
 
     tuple_words = list(c.execute(command))
 
     list_words = list()
 
     for word in tuple_words:
-        list_words.append(word[0])
+        line = word[1] + " - " + word[0] + "\n"
+        list_words.append(line)
 
     connection.close()
     return list_words
@@ -86,11 +120,12 @@ def select_from_dictionary(table_name, start_number, number_of_words, theme):
 def create_users_db():
     command = "CREATE TABLE if not exists users " \
                "(chat_id integer, " \
-               "name TEXT," \
-               "surname TEXT, " \
                "first_language TEXT, " \
                "second_language TEXT, " \
-               "progress INTEGER, " \
+               "COMMON INTEGER, " \
+               "TECH INTEGER, " \
+               "MEDICINE INTEGER, " \
+               "LEGAL INTEGER, " \
                "registration_step INTEGER, " \
                "theme TEXT, " \
                "id INTEGER PRIMARY KEY)"
@@ -115,10 +150,11 @@ def contains_person(chat_id):
 
 def insert_person(chat_id, name, surname, registration_step):
     command = "INSERT INTO users " \
-              "(chat_id, name, surname, registration_step, progress)" \
-              " VALUES ({}, '{}', '{}', {} ,{})".format(chat_id, name, surname, registration_step, 0)
+              "(chat_id, registration_step, COOMON" \
+              "TECH, MEDICINE, LEGAL)" \
+              " VALUES ({}, {}, {}, {} ,{}, {})".format(chat_id, registration_step,
+                                                        0, 0, 0, 0)
 
-    print(command)
     db_execute(USERS_DB_NAME, command)
 
 
@@ -146,10 +182,10 @@ def set_theme(chat_id, theme):
 
 
 def inc_progress(chat_id):
-
+    theme = get_theme(chat_id)
     command =  "UPDATE users " \
-               "SET progress = progress + 10 " \
-               "WHERE chat_id={}".format(chat_id)
+               "SET {} += 10 " \
+               "WHERE chat_id={}".format(theme, chat_id)
 
     db_execute(USERS_DB_NAME, command)
 
@@ -157,6 +193,14 @@ def inc_progress(chat_id):
 def inc_reg_step(chat_id):
     command =  "UPDATE users " \
                "SET registration_step = registration_step + 1 " \
+               "WHERE chat_id={}".format(chat_id)
+
+    db_execute(USERS_DB_NAME, command)
+
+
+def dec_reg_step(chat_id):
+    command =  "UPDATE users " \
+               "SET registration_step = registration_step - 1 " \
                "WHERE chat_id={}".format(chat_id)
 
     db_execute(USERS_DB_NAME, command)
@@ -170,10 +214,12 @@ def get_reg_step(chat_id):
     return db_execute_feedback(USERS_DB_NAME, command)
 
 
-def get_progress(chat_id):
-    command =  "SELECT progress " \
+def get_progress(chat_id, theme):
+    theme = get_theme(chat_id)
+
+    command =  "SELECT {} " \
                "FROM users " \
-               "WHERE chat_id = {}".format(chat_id)
+               "WHERE chat_id = {}".format(theme, chat_id)
 
     return db_execute_feedback(USERS_DB_NAME, command)
 
