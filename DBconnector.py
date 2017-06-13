@@ -150,7 +150,7 @@ def contains_person(chat_id):
 
 def insert_person(chat_id, name, surname, registration_step):
     command = "INSERT INTO users " \
-              "(chat_id, registration_step, COOMON" \
+              "(chat_id, registration_step, COMMON," \
               "TECH, MEDICINE, LEGAL)" \
               " VALUES ({}, {}, {}, {} ,{}, {})".format(chat_id, registration_step,
                                                         0, 0, 0, 0)
@@ -183,9 +183,10 @@ def set_theme(chat_id, theme):
 
 def inc_progress(chat_id):
     theme = get_theme(chat_id)
+    print(theme)
     command =  "UPDATE users " \
-               "SET {} += 10 " \
-               "WHERE chat_id={}".format(theme, chat_id)
+               "SET {} = {} + 10 " \
+               "WHERE chat_id={}".format(theme, theme,  chat_id)
 
     db_execute(USERS_DB_NAME, command)
 
@@ -214,7 +215,7 @@ def get_reg_step(chat_id):
     return db_execute_feedback(USERS_DB_NAME, command)
 
 
-def get_progress(chat_id, theme):
+def get_progress(chat_id):
     theme = get_theme(chat_id)
 
     command =  "SELECT {} " \
