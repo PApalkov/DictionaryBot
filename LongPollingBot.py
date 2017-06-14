@@ -80,7 +80,7 @@ def send_words(message):
     elif message.text == "BACK":
         DB.dec_reg_step(chat_id)
         keyboard = support.make_theme_keyboard()
-        bot.send_message(chat_id, "Choose the theme",reply_markup=keyboard)
+        bot.send_message(chat_id, "Choose the theme", reply_markup=keyboard)
 
     else:
         #translating the word from person

@@ -7,6 +7,7 @@ from support import ENGLISH_LANGUAGE, RUSSIAN_LANGUAGE, FRENCH_LANGUAGE, GERMAN_
 from Translator import translate
 
 
+
 #================== START OF WEBHOOK PART==============
 
 WEBHOOK_HOST = '95.85.10.122'
@@ -39,7 +40,6 @@ class WebhookServer(object):
 
 
 
-
 #Registration Steps
 CHOOSING_FIRST_LANGUAGE = 0
 CHOOSING_SECOND_LANGUAGE = 1
@@ -51,6 +51,9 @@ COMMON_THEME = "COMMON"
 TECH_THEME = "TECH"
 MED_THEME = "MEDICINE"
 LEGAL_THEME = "LEGAL"
+
+
+bot = telebot.TeleBot(token)
 
 
 @bot.message_handler(commands=['start'])
@@ -93,29 +96,30 @@ def send_words(message):
 
         progress = DB.get_progress(chat_id)
         theme = DB.get_theme(chat_id)
-        words = DB.select_from_dictionary(second_language, progress, 10, theme)
-
-        translated_words = ""
+        words = DB.select_from_dictionary(first_language, second_language,
+                                          progress, 10, theme)
 
         if len(words) > 0:
-            for word in words:
-                translation = translate(word, second_language, first_language)
-
-                #if the word is rubbish
-                if not(word == translation):
-                    translated_words += word + " - " + translation + "\n"
+            translated_words = ""
+            for pair in words:
+                translated_words += pair
 
             DB.inc_progress(chat_id)
-
             bot.send_message(chat_id, translated_words)
+
         else:
             bot.send_message(chat_id, "You have finished this part!")
+
+    elif message.text == "BACK":
+        DB.dec_reg_step(chat_id)
+        keyboard = support.make_theme_keyboard()
+        bot.send_message(chat_id, "Choose the theme", reply_markup=keyboard)
+
     else:
         #translating the word from person
         word = message.text
         translation = translate(word, second_language, first_language)
         bot.send_message(chat_id, translation)
-
 
 
 def set_first_language(message):
@@ -189,8 +193,7 @@ def set_theme(message):
     chat_id = message.chat.id
     theme = message.text
 
-    send_words_keyboard = telebot.types.ReplyKeyboardMarkup(resize_keyboard=True)
-    send_words_keyboard.add("GET WORDS")
+    send_words_keyboard = support.send_words_keyboard()
 
     if theme == COMMON_THEME:
         DB.set_theme(chat_id, COMMON_THEME)
@@ -218,17 +221,14 @@ def set_theme(message):
                          reply_markup=theme_keyboard)
 
 
-@bot.message_handler(func=lambda m: True, content_types=['text'])
+@bot.message_handler(func=lambda m: True)
 def usual_messages(message):
     chat_id = message.chat.id
-
-
 
     if DB.contains_person(chat_id):
 
         if DB.get_reg_step(chat_id) == FINISHED:
             send_words(message)
-
 
         elif DB.get_reg_step(chat_id) == CHOOSING_FIRST_LANGUAGE:
 
@@ -248,6 +248,8 @@ def usual_messages(message):
             bot.send_message(chat_id, "ERROR")
     else:
         bot.send_message(chat_id, "Send /start first!")
+
+
 
 
 

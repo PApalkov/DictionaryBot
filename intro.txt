@@ -1,1 +1,6 @@
-This is intro text!
+This bot can help you to learn new words.
+If you want to choose another language, use commands /stop to deactivate bot and then /start to use it again!
+You can also translate words from your language to the language you are learning.
+To do that, switch inline keyboard and send the word to bot.
+
+Enjoy!

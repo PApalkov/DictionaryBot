@@ -85,8 +85,11 @@ def divide_to_theme(texts):
 
 def get_info(language):
     texts = read_texts(language)
+    print("Texts uploaded")
     texts = parse_texts(texts)
+    print("words are counted")
     words = divide_to_theme(texts)
+    print("Words are divided")
 
     return words
 

@@ -72,6 +72,7 @@ def insert_dictionary_translating(table_name, dictionary):
         for en_word, priority in info.items():
             if len(en_word) > 2:
 
+                print(en_word)
                 ru_word = translate(en_word, "en", "ru")
                 fr_word = translate(en_word, "en", "fr")
                 de_word = translate(en_word, "en", "de")
