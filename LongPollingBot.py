@@ -4,7 +4,7 @@ import DBconnector as DB
 import support
 from support import ENGLISH_LANGUAGE, RUSSIAN_LANGUAGE, FRENCH_LANGUAGE, GERMAN_LANGUAGE
 from Translator import translate
-import emoji
+
 
 
 #Registration Steps
@@ -80,7 +80,7 @@ def send_words(message):
     elif message.text == "BACK":
         DB.dec_reg_step(chat_id)
         keyboard = support.make_theme_keyboard()
-        bot.send_message(chat_id, "Choose the theme", reply_markup=keyboard)
+        bot.send_message(chat_id, "Choose the theme:", reply_markup=keyboard)
 
     else:
         #translating the word from person
@@ -98,24 +98,28 @@ def set_first_language(message):
         lang_keyboard = support.make_language_keyboard(ENGLISH_LANGUAGE)
         bot.send_message(chat_id=chat_id, text="Choose the language you are learning:",
                          reply_markup=lang_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif language == GERMAN_LANGUAGE:
         DB.set_first_language(chat_id, "de")
         lang_keyboard = support.make_language_keyboard(GERMAN_LANGUAGE)
         bot.send_message(chat_id=chat_id, text="Choose the language you are learning:",
                          reply_markup=lang_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif language == RUSSIAN_LANGUAGE:
         DB.set_first_language(chat_id, "ru")
         lang_keyboard = support.make_language_keyboard(RUSSIAN_LANGUAGE)
         bot.send_message(chat_id=chat_id, text="Choose the language you are learning:",
                          reply_markup=lang_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif language == FRENCH_LANGUAGE:
         DB.set_first_language(chat_id, "fr")
         lang_keyboard = support.make_language_keyboard(FRENCH_LANGUAGE)
         bot.send_message(chat_id=chat_id, text="Choose the language you are learning:",
                          reply_markup=lang_keyboard)
+        DB.inc_reg_step(chat_id)
 
     else:
         lang_keyboard = support.make_language_keyboard()
@@ -133,21 +137,25 @@ def set_second_language(message):
         DB.set_second_language(chat_id, "en")
         bot.send_message(chat_id=chat_id, text="Choose the theme:",
                          reply_markup=theme_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif language == GERMAN_LANGUAGE:
         DB.set_second_language(chat_id, "de")
         bot.send_message(chat_id=chat_id, text="Choose the theme:",
                          reply_markup=theme_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif language == RUSSIAN_LANGUAGE:
         DB.set_second_language(chat_id, "ru")
         bot.send_message(chat_id=chat_id, text="Choose the theme:",
                          reply_markup=theme_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif language == FRENCH_LANGUAGE:
         DB.set_second_language(chat_id, "fr")
         bot.send_message(chat_id=chat_id, text="Choose the theme:",
                          reply_markup=theme_keyboard)
+        DB.inc_reg_step(chat_id)
 
     else:
         first_language = DB.get_first_language(chat_id)
@@ -166,21 +174,25 @@ def set_theme(message):
         DB.set_theme(chat_id, COMMON_THEME)
         bot.send_message(chat_id=chat_id, text="Enjoy!",
                          reply_markup=send_words_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif theme == TECH_THEME:
         DB.set_theme(chat_id, TECH_THEME)
         bot.send_message(chat_id=chat_id, text="Enjoy!",
                          reply_markup=send_words_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif theme == MED_THEME:
         DB.set_theme(chat_id, MED_THEME)
         bot.send_message(chat_id=chat_id, text="Enjoy!",
                          reply_markup=send_words_keyboard)
+        DB.inc_reg_step(chat_id)
 
     elif theme == LEGAL_THEME:
         DB.set_theme(chat_id, LEGAL_THEME)
         bot.send_message(chat_id=chat_id, text="Enjoy!",
                          reply_markup=send_words_keyboard)
+        DB.inc_reg_step(chat_id)
 
     else:
         theme_keyboard = support.make_theme_keyboard()
@@ -198,18 +210,13 @@ def usual_messages(message):
             send_words(message)
 
         elif DB.get_reg_step(chat_id) == CHOOSING_FIRST_LANGUAGE:
-
             set_first_language(message)
-            DB.inc_reg_step(chat_id)
 
         elif DB.get_reg_step(chat_id) == CHOOSING_SECOND_LANGUAGE:
             set_second_language(message)
-            DB.inc_reg_step(chat_id)
-
 
         elif DB.get_reg_step(chat_id) == CHOOSING_THEME:
             set_theme(message)
-            DB.inc_reg_step(chat_id)
 
         else:
             bot.send_message(chat_id, "ERROR")
